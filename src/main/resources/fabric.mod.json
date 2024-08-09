@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "unrailed",
+  "version": "${version}",
+  "name": "Unrailed",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/marco/Unrailed"
+  },
+  "license": "MIT",
+  "icon": "assets/unrailed/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "me.restonic4.unrailed.client.UnrailedClient"
+    ],
+    "main": [
+      "me.restonic4.unrailed.Unrailed"
+    ]
+  },
+  "mixins": [
+    "unrailed.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
