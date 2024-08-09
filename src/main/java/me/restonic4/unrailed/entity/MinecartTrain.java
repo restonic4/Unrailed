@@ -50,10 +50,10 @@ public class MinecartTrain extends Minecart {
 
             //Load a 3x3 chunk area around the minecart
             ChunkPos currentChunk = new ChunkPos(chunkPos.x, chunkPos.z);
-            serverLevel.getChunkSource().addRegionTicket(TicketType.PORTAL, currentChunk, 3, this.blockPosition());
+            serverLevel.getChunkSource().addRegionTicket(TicketType.FORCED, currentChunk, 3, currentChunk);
 
             //Dynmap compatibility, updates the marker
-            if (FabricUtil.isModLoaded("dynmap")) {
+            if (FabricUtil.isModLoaded("dynmap") && isMoving()) {
                 DynmapCompatibilityManager.updateMarker(this);
             }
         }

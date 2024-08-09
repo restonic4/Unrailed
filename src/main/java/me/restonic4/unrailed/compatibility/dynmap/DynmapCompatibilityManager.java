@@ -13,6 +13,7 @@ import org.dynmap.markers.MarkerSet;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class DynmapCompatibilityManager {
     private static DynmapCommonAPI dynmapAPI;
@@ -79,7 +80,7 @@ public class DynmapCompatibilityManager {
                 Marker marker = markerSet.createMarker(
                         "train_minecart_" + minecartTrain.getId(), // id
                         "Train", // name
-                        minecartTrain.level().dimension().location().toString(), // dimension
+                        getFixedWorldName(minecartTrain.level().dimension().location().toString()), // dimension
                         minecartTrain.getX(), minecartTrain.getY(), minecartTrain.getZ(), // start position
                         DynmapCompatibilityManager.getMarkerIcon(), // icon
                         false // persistent
@@ -89,6 +90,8 @@ public class DynmapCompatibilityManager {
 
                 log("Marker created");
             }
+
+            printDefaultMarkerDetails();
         }
     }
 
@@ -105,13 +108,54 @@ public class DynmapCompatibilityManager {
         Marker marker = trainMarkers.get(minecartTrain);
         if (marker != null) {
             marker.setLocation(
-                    minecartTrain.level().dimension().location().toString(), // Dimensión como String
+                    getFixedWorldName(minecartTrain.level().dimension().location().toString()), // Dimensión como String
                     minecartTrain.getX(),
                     minecartTrain.getY(),
                     minecartTrain.getZ()
             );
         }
     }
+
+    public static String getFixedWorldName(String correctName) {
+        if (Objects.equals(correctName, "minecraft:overworld")) {
+            return "world";
+        } else if (Objects.equals(correctName, "minecraft:the_nether")) {
+            return "DIM-1";
+        } else if (Objects.equals(correctName, "minecraft:the_end")) {
+            return "DIM1";
+        }
+
+        return correctName;
+    }
+
+    public static void printDefaultMarkerDetails() {
+        if (isDynmapEnabled()) {
+            MarkerAPI markerAPI = dynmapAPI.getMarkerAPI();
+
+            markerSet.getMarkers().forEach(marker -> {
+                String markerId = marker.getMarkerID();
+                String markerLabel = marker.getLabel();
+                String markerWorld = marker.getWorld();
+
+                log("Marker ID: " + markerId);
+                log("Marker Label: " + markerLabel);
+                log("Marker World: " + markerWorld);
+            });
+
+            markerAPI.getMarkerSet("markers").getMarkers().forEach(marker -> {
+                String markerId = marker.getMarkerID();
+                String markerLabel = marker.getLabel();
+                String markerWorld = marker.getWorld();
+
+                log("Marker ID: " + markerId);
+                log("Marker Label: " + markerLabel);
+                log("Marker World: " + markerWorld);
+            });
+        } else {
+            System.out.println("Dynmap is not enabled.");
+        }
+    }
+
 
     private static void log(String message) {
         if (debugMode) {
