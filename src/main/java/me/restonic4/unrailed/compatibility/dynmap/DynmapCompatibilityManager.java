@@ -10,12 +10,15 @@ import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerIcon;
 import org.dynmap.markers.MarkerSet;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DynmapCompatibilityManager {
     private static DynmapCommonAPI dynmapAPI;
     private static MarkerSet markerSet;
+
+    private static boolean debugMode = true;
 
     private static final Map<MinecartTrain, Marker> trainMarkers = new HashMap<>();
 
@@ -36,25 +39,42 @@ public class DynmapCompatibilityManager {
 
     private static void initializeDynmapIntegration(DynmapCommonAPI api) {
         MarkerAPI markerAPI = api.getMarkerAPI();
-        MarkerSet markerSet = markerAPI.createMarkerSet("unrailed_minecarts", "Trains", null, false);
+        markerSet = markerAPI.createMarkerSet("unrailed_minecarts", "Trains", null, false);
 
+        log("Dynmap started");
     }
 
     public static boolean isDynmapEnabled() {
         return dynmapAPI != null;
     }
 
-    public static MarkerSet getMarkerSet() {
-        return markerSet;
-    }
-
     public static MarkerIcon getMarkerIcon() {
-        return dynmapAPI.getMarkerAPI().getMarkerIcon("train_icon");
+        MarkerAPI markerAPI = dynmapAPI.getMarkerAPI();
+        MarkerIcon customIcon = markerAPI.getMarkerIcon("train");
+
+        if (customIcon == null) {
+            log("Creating train icon");
+
+            try (InputStream iconStream = DynmapCompatibilityManager.class.getResourceAsStream("/assets/unrailed/textures/icons/train.png")) {
+                if (iconStream != null) {
+                    customIcon = markerAPI.createMarkerIcon("train", "Train", iconStream);
+                } else {
+                    System.err.println("Failed to load icon file for train");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return customIcon;
     }
 
     public static void createMarker(MinecartTrain minecartTrain) {
+        log("Creating train marker");
+
         if (DynmapCompatibilityManager.isDynmapEnabled()) {
-            MarkerSet markerSet = DynmapCompatibilityManager.getMarkerSet();
+            log("Dynmap is enabled");
+
             if (markerSet != null) {
                 Marker marker = markerSet.createMarker(
                         "train_minecart_" + minecartTrain.getId(), // id
@@ -62,10 +82,12 @@ public class DynmapCompatibilityManager {
                         minecartTrain.level().dimension().location().toString(), // dimension
                         minecartTrain.getX(), minecartTrain.getY(), minecartTrain.getZ(), // start position
                         DynmapCompatibilityManager.getMarkerIcon(), // icon
-                        true // visible
+                        false // persistent
                 );
 
                 trainMarkers.put(minecartTrain, marker);
+
+                log("Marker created");
             }
         }
     }
@@ -74,6 +96,8 @@ public class DynmapCompatibilityManager {
         Marker marker = trainMarkers.remove(minecartTrain);
         if (marker != null) {
             marker.deleteMarker();
+
+            log("Marker removed");
         }
     }
 
@@ -86,6 +110,12 @@ public class DynmapCompatibilityManager {
                     minecartTrain.getY(),
                     minecartTrain.getZ()
             );
+        }
+    }
+
+    private static void log(String message) {
+        if (debugMode) {
+            System.out.println("[Unrailed | Dynmap debug info]: " + message);
         }
     }
 }
